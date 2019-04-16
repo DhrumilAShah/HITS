@@ -16,11 +16,22 @@ public class FileReader1432 {
 	}
 	
 	int getEdgeSize() throws IOException{
-		return Integer.parseInt( (char)getNextValue()+"");
+		String temp="";
+		int i;
+		while((i=br.read())!=10) {
+			temp += ((char)i)+"";
+		}
+		//System.out.println(temp);
+		return Integer.parseInt(temp);
 	}
 	
 	int getVerticeSize() throws NumberFormatException, IOException{
-		return Integer.parseInt( (char)getNextValue()+"");
+		String temp="";
+		int i;
+		while((i=br.read())!=32) {
+			temp += ((char)i)+"";
+		}
+		return Integer.parseInt( temp );
 	}
 	
 	int getNextValue() throws IOException{

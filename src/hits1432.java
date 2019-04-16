@@ -9,72 +9,86 @@ public class hits1432 {
 	static double[] hub;
 	static double [] auth;
 	static FileReader1432 fr;
+	static int initialValue;
+	static int iterations;
+	static double[] prevHub;
+	static double[] prevAuth;
 
 	public static void main(String[] args) throws IOException {
 
-		fr = new FileReader1432("s.txt");
+		fr = new FileReader1432("l.txt");
 
 		vertices = fr.getVerticeSize();
 		adjMtrx = new int[vertices][vertices];
-		hub = auth = fillVector(vertices, 1.0, vertices);
+
 		edges = fr.getEdgeSize();
 
 		adjMtrx = initMtrx(adjMtrx.length);
-		//trnsMtrx = transpose(adjMtrx,adjMtrx.length);
 
-		//auth = mtrxMulti(hub, trnsMtrx);
-		//hub = mtrxMulti(auth,adjMtrx);
+		initialValue = 1;
+		iterations = 12;
 
-		//auth = computeAuth(auth, hub, adjMtrx);
-		//		for(int o=0; o<auth.length; o++) {
-		//			System.out.println(auth[o]);
-		//		}
-
-		//hub = computeHub(hub, auth, adjMtrx);
-		//		for(int k=0; k<hub.length; k++) {
-		//			System.out.println(hub[k]);
-		//		}
 		DecimalFormat numberFormat = new DecimalFormat("0.0000000");
-		
 
-		for(int i=0; i<11; i++) {
+		if (vertices > 10) {
+			iterations = 0;
+			initialValue = -1;
 
-			System.out.print("Iter: "+i+" :");
+		}
+
+		prevHub = prevAuth = new double[vertices];
+		hub = auth = fillVector(vertices, initialValue, vertices);
+
+		int i=0;
+		while((iterations == 0 ? true : i!=iterations )) {	
+			System.out.print( ((i!=0) ? "Iter: " : "Base: ") +i+" :");
 			for(int g=0; g<hub.length; g++) {
 				System.out.print("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
 						+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
 			}
+			prevAuth = auth;
+			prevHub = hub;
 
 			auth = computeAuth(auth, hub, adjMtrx);
-			hub = computeHub(hub, auth, adjMtrx);
+			hub = computeHub(hub, auth, adjMtrx);		
 
 			double[] dash = computeUVDash(hub,auth);//0=hub, 1=auth
-
-
 			System.out.println();
 
 			//System.out.println(dash[1]+"--"+dash[0]);
 
 			auth = scaleMtrx(dash[1],auth);
-			//			for(int o=0; o<auth.length; o++) {
-			//				System.out.println(auth[o]);
-			//			}
+
 			hub = scaleMtrx(dash[0],hub);
-			//			for(int g=0;g<hub.length;g++) {
-			//				System.out.println(u[g]+" "+v[g]);
-			//			}
-			//System.out.println();
+
+			if(vertices>10 && didItConverged(i,prevAuth,prevHub,auth,hub)) break;
+			i++;
 		}
 		//printMtrx(trnsMtrx);
 		fr.close();
 		//printMtrx(adjMtrx);
 	}
 
+	static boolean didItConverged(int iterations,double[] prevA, double[] prevH, double[] au, double[] hu) {
+		double errRate = 0;
+		errRate = (iterations == 0)? 100000 : Math.pow(10, (iterations * -1));
+
+		for (int i = 0; i < au.length; i++) 
+			if ((int)Math.floor(au[i] * errRate) != (int)Math.floor(prevA[i] * errRate)) 
+				return false;
+
+		for (int i = 0; i < hu.length; i++) 
+			if ((int)Math.floor(hu[i] * errRate) != (int)Math.floor(prevH[i] * errRate)) 
+				return false;
+		System.out.println("Converged!");
+		return true;
+	}
 
 	static double[] computeHub(double[] mtrx, double[] mtrx2, int[][] adjMtrx) {
 		double sum;
 		double[] temp = new double[mtrx.length];
 		for(int i=0; i <mtrx.length; i++) {
+			//prevHub[i]=mtrx[i];
 			sum = 0.0;
 			for(int a=0; a<adjMtrx.length; a++) {
 				if(adjMtrx[i][a] == 1)	{
@@ -84,7 +98,7 @@ public class hits1432 {
 				}
 			}
 			temp[i] = sum;
-		}
+		}	
 		return temp;
 	}
 
@@ -92,6 +106,7 @@ public class hits1432 {
 		double sum;
 		double[] temp = new double[mtrx.length];
 		for(int i=0; i <mtrx.length; i++) {
+			//prevAuth[i]=mtrx[i];
 			sum = 0.0;
 			for(int a=0; a<adjMtrx.length; a++) {
 				if(adjMtrx[a][i] == 1) {
@@ -129,50 +144,59 @@ public class hits1432 {
 		//System.out.println(sum1+" sum->"+Math.sqrt(sum1));
 		return new double[] {Math.sqrt(sum1),Math.sqrt(sum2)};	
 		//return new double[]{ Math.round((Math.sqrt(sum1)) * 10000000d) / 10000000d,
-			//	Math.round((Math.sqrt(sum2)) * 10000000d) / 10000000d };
+		//	Math.round((Math.sqrt(sum2)) * 10000000d) / 10000000d };
 	}
 
-//	static int[][] transpose(int[][] mtrx, int size){
-//		int[][] trnsMtrx = new int[size][size];
-//		for(int i=0; i<size; i++) 
-//			for(int j=0; j<size; j++) 
-//				trnsMtrx[j][i] = mtrx[i][j];
-//		return trnsMtrx;
-//	}
-//
-//	static double[] mtrxMulti(double mtrx[], int mtrx2[][]) {
-//		int size = mtrx.length;
-//		double[] temp = new double[size];
-//		for(int i=0; i<size; i++) {
-//			int sum = 0;
-//			for(int j=0; j<size; j++) {
-//				sum += mtrx2[i][j] * mtrx[j];
-//			}
-//			temp[i] = sum;
-//		}	
-//		return temp;
-//	}
+	//	static int[][] transpose(int[][] mtrx, int size){
+	//		int[][] trnsMtrx = new int[size][size];
+	//		for(int i=0; i<size; i++) 
+	//			for(int j=0; j<size; j++) 
+	//				trnsMtrx[j][i] = mtrx[i][j];
+	//		return trnsMtrx;
+	//	}
+	//
+	//	static double[] mtrxMulti(double mtrx[], int mtrx2[][]) {
+	//		int size = mtrx.length;
+	//		double[] temp = new double[size];
+	//		for(int i=0; i<size; i++) {
+	//			int sum = 0;
+	//			for(int j=0; j<size; j++) {
+	//				sum += mtrx2[i][j] * mtrx[j];
+	//			}
+	//			temp[i] = sum;
+	//		}	
+	//		return temp;
+	//	}
 
-	static int[][] initMtrx(int size) throws NumberFormatException, IOException {
-		int i;
-		int[][] mtrx = new int[size][size];
-		while ( (i = fr.getNextValue()) != -1 ){ 
-			int prev = i;
-			if((i = fr.getNextValue()) != -1) 
-				mtrx[Integer.parseInt(((char)prev)+"")][Integer.parseInt((char)i+"")] = 1;
-			else break;
+	static int[][] initMtrx(int size){
+		//System.out.println(size);
+		try {
+			int i;
+			int[][] mtrx = new int[size][size];
+			while ( (i = fr.getNextValue()) != -1 ){ 
+				int prev = i;
+				if((i = fr.getNextValue()) != -1) {
+					mtrx[Integer.parseInt(((char)prev)+"")][Integer.parseInt((char)i+"")] = 1;
+				}
+				else break;
+			}
+			return mtrx;
+		}catch(Exception e) {
+			e.printStackTrace();
+			return null;
 		}
-		return mtrx;
 	}
 
-	static double[] fillVector(int size, double initValue, int vertices) {
-		if(initValue == -1.0) {
-			initValue = 1/vertices;
-		}else if(initValue == -2.0) {
-			initValue = 1/Math.sqrt(vertices);
+	static double[] fillVector(int size, int initValue, int vertices) {
+		//System.out.println(initialValue);
+		double temp = initValue;
+		if(initValue == -1) {
+			temp = (1/(double)vertices);
+		}else if(initValue == -2) {
+			temp = 1/(double)Math.sqrt(vertices);
 		}
 		double[] vec = new double[size];
-		for(int j=0; j<size; j++) vec[j] = initValue;
+		for(int j=0; j<size; j++) vec[j] = temp;
 		return vec;
 	}
 
