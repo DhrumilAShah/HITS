@@ -22,11 +22,13 @@ public class hits1432 {
 		adjMtrx = new int[vertices][vertices];
 
 		edges = fr.getEdgeSize();
+		
+		//System.out.println("Edges: "+edges+" Vertices: "+vertices);
 
 		adjMtrx = initMtrx(adjMtrx.length);
 
 		initialValue = 1;
-		iterations = 12;
+		iterations = 9;
 
 		DecimalFormat numberFormat = new DecimalFormat("0.0000000");
 
@@ -35,17 +37,34 @@ public class hits1432 {
 			initialValue = -1;
 
 		}
+		
+		//printMtrx(adjMtrx);
 
 		prevHub = prevAuth = new double[vertices];
 		hub = auth = fillVector(vertices, initialValue, vertices);
 
 		int i=0;
 		while((iterations == 0 ? true : i!=iterations )) {	
-			System.out.print( ((i!=0) ? "Iter: " : "Base: ") +i+" :");
-			for(int g=0; g<hub.length; g++) {
-				System.out.print("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
-						+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+
+			if(i == 0) {
+				System.out.print("Base: 0 : ");
+				for(int g=0; g<hub.length; g++) {
+					System.out.print("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+							+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+				}
+				System.out.println();
+			}else {
+				if(vertices < 11) {
+					System.out.print("Iter: "+i+" :");
+					for(int g=0; g<hub.length; g++) {
+						System.out.print("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+								+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+						
+					}
+					System.out.println();
+				}
 			}
+
 			prevAuth = auth;
 			prevHub = hub;
 
@@ -53,7 +72,6 @@ public class hits1432 {
 			hub = computeHub(hub, auth, adjMtrx);		
 
 			double[] dash = computeUVDash(hub,auth);//0=hub, 1=auth
-			System.out.println();
 
 			//System.out.println(dash[1]+"--"+dash[0]);
 
@@ -61,26 +79,52 @@ public class hits1432 {
 
 			hub = scaleMtrx(dash[0],hub);
 
-			if(vertices>10 && didItConverged(i,prevAuth,prevHub,auth,hub)) break;
+			if(vertices>10 && didItConverge((iterations == 0) ? 0 : i,prevAuth, prevHub, auth, hub)) break;
 			i++;
+		}
+
+		if(vertices>10) {
+			System.out.println("Iter: "+i+" :");
+			for(int g=0; g<hub.length; g++) {
+				System.out.println("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+						+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+			}
 		}
 		//printMtrx(trnsMtrx);
 		fr.close();
 		//printMtrx(adjMtrx);
 	}
 
-	static boolean didItConverged(int iterations,double[] prevA, double[] prevH, double[] au, double[] hu) {
+	static boolean didItConverge(int iterations, double[] prevA, double[] prevH, double[] au, double[] hu) {
 		double errRate = 0;
 		errRate = (iterations == 0)? 100000 : Math.pow(10, (iterations * -1));
 
-		for (int i = 0; i < au.length; i++) 
-			if ((int)Math.floor(au[i] * errRate) != (int)Math.floor(prevA[i] * errRate)) 
+		DecimalFormat numberFormat = new DecimalFormat("0.0000000");
+		for (int i = 0; i < au.length; i++) {
+			//System.out.println(au[i]+"--"+errRate+"--"+au[i]*errRate);
+			//System.out.println((int)Math.floor(au[i] * errRate)+"--"+(int)Math.floor(prevA[i] * errRate));
+			if ((int)Math.floor(au[i] * errRate) != (int)Math.floor(prevA[i] * errRate)) {
 				return false;
+			}
+		}
 
-		for (int i = 0; i < hu.length; i++) 
-			if ((int)Math.floor(hu[i] * errRate) != (int)Math.floor(prevH[i] * errRate)) 
+		for (int i = 0; i < hu.length; i++) {
+			//System.out.println((int)Math.floor(hu[i] * errRate)+"--"+(int)Math.floor(prevH[i] * errRate));
+			if ((int)Math.floor(hu[i] * errRate) != (int)Math.floor(prevH[i] * errRate)) { 
+
 				return false;
-		System.out.println("Converged!");
+			}
+		}
+
+//		for(int g=0; g<hub.length; g++) {
+//			System.out.println("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+//					+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+//		}
+//		for(int g=0; g<prevAuth.length; g++) {
+//			System.out.println("A/H["+g+"] = "+numberFormat.format(Math.floor(prevAuth[g] * 1e7)/1e7)+" / "
+//					+numberFormat.format(Math.floor(prevHub[g] * 1e7)/1e7)+" ");
+//		}
+		//System.out.println("Converged!");
 		return true;
 	}
 
@@ -94,7 +138,7 @@ public class hits1432 {
 				if(adjMtrx[i][a] == 1)	{
 					sum += mtrx2[a];
 					//sum = Math.round((sum) * 10000000d) / 10000000d;
-					//System.out.println("i>"+i+" sum>"+Math.round((sum) * 10000000d) / 10000000d+" a>"+a+" val>"+mtrx2[a]+" auth>"+auth[a]);
+					//System.out.println("HUB>>>>>i>"+i+" sum>"+Math.round((sum) * 10000000d) / 10000000d+" a>"+a+" val>"+mtrx2[a]+" auth>"+auth[a]);
 				}
 			}
 			temp[i] = sum;
@@ -112,7 +156,7 @@ public class hits1432 {
 				if(adjMtrx[a][i] == 1) {
 					sum += mtrx2[a];
 					//sum = Math.round((sum) * 10000000d) / 10000000d;
-					//System.out.println("i>"+i+" sum>"+Math.round((sum) * 10000000d) / 10000000d+" a>"+a+" val>"+mtrx2[a]+" auth>"+auth[a]);
+					//System.out.println("AUTH>>>>i>"+i+" sum>"+Math.round((sum) * 10000000d) / 10000000d+" a>"+a+" val>"+mtrx2[a]+" auth>"+auth[a]);
 				}
 			}
 			temp[i] =sum;
@@ -175,8 +219,11 @@ public class hits1432 {
 			int[][] mtrx = new int[size][size];
 			while ( (i = fr.getNextValue()) != -1 ){ 
 				int prev = i;
+				//System.out.println(prev+"--"+i);
 				if((i = fr.getNextValue()) != -1) {
-					mtrx[Integer.parseInt(((char)prev)+"")][Integer.parseInt((char)i+"")] = 1;
+					//System.out.println(prev+"--"+i);
+					mtrx[prev][i] = 1;
+					//mtrx[Integer.parseInt(((char)prev)+"")][Integer.parseInt((char)i+"")] = 1;
 				}
 				else break;
 			}
