@@ -38,40 +38,34 @@ public class hits1432 {
 
 			edges = fr.getEdgeSize();
 
-			//System.out.println("Edges: "+edges+" Vertices: "+vertices);
-
 			adjMtrx = initMtrx(adjMtrx.length);
 
-			initialValue = -2;
-			iterations = 9;
-
-			DecimalFormat numberFormat = new DecimalFormat("0.0000000");
+			DecimalFormat numFmt = new DecimalFormat("0.0000000");
 
 			if (vertices > 10) {
 				iterations = 0;
 				initialValue = -1;
-
 			}		
 
 			prevHub = prevAuth = new double[vertices];
 			hub = auth = fillVector(vertices, initialValue, vertices);
 
 			int i=0;
-			while((iterations == 0 ? true : i!=(iterations+1) )) {	
+			while((iterations <= 0 ? true : i!=(iterations+1) )) {	
 
 				if(i == 0) {
 					System.out.print("Base: 0 : ");
 					for(int g=0; g<hub.length; g++) {
-						System.out.print("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
-								+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+						System.out.print("A/H["+g+"] = "+numFmt.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+								+numFmt.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
 					}
 					System.out.println();
 				}else {
 					if(vertices < 11) {
 						System.out.print("Iter: "+i+" :");
 						for(int g=0; g<hub.length; g++) {
-							System.out.print("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
-									+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+							System.out.print("A/H["+g+"] = "+numFmt.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+									+numFmt.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
 
 						}
 						System.out.println();
@@ -86,25 +80,36 @@ public class hits1432 {
 
 				double[] dash = computeUVDash(hub,auth);//0=hub, 1=auth
 
-				//System.out.println(dash[1]+"--"+dash[0]);
-
 				auth = scaleMtrx(dash[1],auth);
 
 				hub = scaleMtrx(dash[0],hub);
 
-				if(vertices>10 && didItConverge((iterations == 0) ? 0 : i,prevAuth, prevHub, auth, hub)) break;
+				if((vertices>10 || iterations<0) 
+						&& didItConverge((iterations <= 0) ? iterations : i,prevAuth, prevHub, auth, hub)) { 
+					if(vertices<11) {
+						System.out.print("Iter: "+(++i)+" :");
+						for(int g=0; g<hub.length; g++) {
+							System.out.print("A/H["+g+"] = "+numFmt.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+									+numFmt.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+
+						}
+						System.out.println();
+					}
+					break;
+				}
+
 				i++;
 			}
 
 			if(vertices>10) {
-				System.out.println("Iter: "+i+" :");
+				System.out.println("Iter: "+(++i)+" :");
 				for(int g=0; g<hub.length; g++) {
-					System.out.println("A/H["+g+"] = "+numberFormat.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
-							+numberFormat.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
+					System.out.println("A/H["+g+"] = "+numFmt.format(Math.floor(auth[g] * 1e7)/1e7)+" / "
+							+numFmt.format(Math.floor(hub[g] * 1e7)/1e7)+" ");
 				}
 			}
 			fr.close();
-			
+
 		}catch(Exception e) {
 			System.err.println(e.getMessage());
 		}
@@ -115,15 +120,12 @@ public class hits1432 {
 		errRate = (iterations == 0)? 100000 : Math.pow(10, (iterations * -1));
 
 		for (int i = 0; i < au.length; i++) {
-			//System.out.println(au[i]+"--"+errRate+"--"+au[i]*errRate);
-			//System.out.println((int)Math.floor(au[i] * errRate)+"--"+(int)Math.floor(prevA[i] * errRate));
 			if ((int)Math.floor(au[i] * errRate) != (int)Math.floor(prevA[i] * errRate)) {
 				return false;
 			}
 		}
 
 		for (int i = 0; i < hu.length; i++) {
-			//System.out.println((int)Math.floor(hu[i] * errRate)+"--"+(int)Math.floor(prevH[i] * errRate));
 			if ((int)Math.floor(hu[i] * errRate) != (int)Math.floor(prevH[i] * errRate)) {
 				return false;
 			}
@@ -140,7 +142,6 @@ public class hits1432 {
 			for(int a=0; a<adjMtrx.length; a++) {
 				if(adjMtrx[i][a] == 1)	{
 					sum += mtrx2[a];
-					//System.out.println("HUB>>>>>i>"+i+" sum>"+Math.round((sum) * 10000000d) / 10000000d+" a>"+a+" val>"+mtrx2[a]+" auth>"+auth[a]);
 				}
 			}
 			temp[i] = sum;
@@ -156,7 +157,6 @@ public class hits1432 {
 			for(int a=0; a<adjMtrx.length; a++) {
 				if(adjMtrx[a][i] == 1) {
 					sum += mtrx2[a];
-					//System.out.println("AUTH>>>>i>"+i+" sum>"+Math.round((sum) * 10000000d) / 10000000d+" a>"+a+" val>"+mtrx2[a]+" auth>"+auth[a]);
 				}
 			}
 			temp[i] =sum;
@@ -170,7 +170,6 @@ public class hits1432 {
 		int size = mtrx.length;
 		double[] temp = new double[size];
 		for(int i=0; i<size; i++) { 
-			//System.out.println(mtrx[i]+"/"+num+"-->"+Math.round((mtrx[i] / num) * 10000000d) / 10000000d);
 			temp[i] = mtrx[i] / num;
 		}
 		return temp;
@@ -181,33 +180,27 @@ public class hits1432 {
 		double sum2 = 0.0;
 		for(int i=0; i<u.length; i++) {
 			sum1 += (double)Math.pow(u[i],2);
-			//System.out.println("sum: "+sum1);
 			sum2 += (v[i] * v[i]);
 		}
-		//System.out.println(sum1+" sum->"+Math.sqrt(sum1));
 		return new double[] {Math.sqrt(sum1),Math.sqrt(sum2)};	
 	}
 
 	static int[][] initMtrx(int size){
-		//System.out.println(size);
 		try {
 			int i;
 			int[][] mtrx = new int[size][size];
-			int counter = 0;
+			int edgeCounter = 0;
 			while ( (i = fr.getNextValue()) != -1 ){ 
 				int prev = i;
-				counter++;
-				//System.out.println(prev+"--"+i);
 				if((i = fr.getNextValue()) != -1) {
-					//System.out.println(prev+"--"+i);
 					mtrx[prev][i] = 1;
+					edgeCounter++;
 				}
 				else break;
 			}
-			//System.out.println(counter);
-			if(counter != vertices) {
-				System.out.println("Improper Data Format..!");
-				System.exit(0);
+			//System.out.println(edgeCounter);
+			if(edgeCounter != edges) {
+				throw new Exception("Improper Data Format..!");
 			}
 			return mtrx;
 		}catch(Exception e) {
@@ -217,7 +210,6 @@ public class hits1432 {
 	}
 
 	static double[] fillVector(int size, int initValue, int vertices) {
-		//System.out.println(initialValue);
 		double temp = initValue;
 		if(initValue == -1) {
 			temp = (1/(double)vertices);
