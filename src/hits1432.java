@@ -1,3 +1,4 @@
+// Dhrumil Shah cs610 1432 prp
 import java.io.IOException;
 import java.text.DecimalFormat;
 
@@ -7,7 +8,7 @@ public class hits1432 {
 	static int[][] adjMtrx;
 	static double[] hub;
 	static double [] auth;
-	static FileReader1432 fr;
+	static Reader1432 fr;
 	static int initialValue;
 	static int iterations;
 	static double[] prevHub;
@@ -31,7 +32,7 @@ public class hits1432 {
 				return;
 			}
 
-			fr = new FileReader1432(fileName);
+			fr = new Reader1432(fileName);
 
 			vertices = fr.getVerticeSize();
 			adjMtrx = new int[vertices][vertices];

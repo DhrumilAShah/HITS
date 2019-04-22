@@ -1,13 +1,14 @@
+// Dhrumil Shah cs610 1432 prp
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public class FileReader1432 {
+public class Reader1432 {
 
 	private static BufferedInputStream br;
 
-	FileReader1432(String fileName){
+	Reader1432(String fileName){
 		try {
 			br = new BufferedInputStream(new FileInputStream(fileName));
 		} catch (FileNotFoundException e) {
